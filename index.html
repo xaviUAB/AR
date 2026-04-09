@@ -1001,7 +1001,7 @@
         AFRAME.registerComponent('drag-rotate', {
             init: function () {
                 this.isDragging = false;
-                this.previousPosition = { x: 0, y: 0 };
+                this.previousPosition = { x: null, y: null };
                 this.onDragStart = this.onDragStart.bind(this);
                 this.onDragMove = this.onDragMove.bind(this);
                 this.onDragEnd = this.onDragEnd.bind(this);
@@ -1013,33 +1013,23 @@
                 if (this.isDragging) return;
                 this.isDragging = true;
                 
-                const evt = (e.detail && e.detail.mouseEvent) ? e.detail.mouseEvent : e;
-                let clientX = 0, clientY = 0;
+                // Reiniciem la posició prèvia perquè es fixi just en el primer moviment
+                this.previousPosition = { x: null, y: null };
                 
-                if (evt.touches && evt.touches.length > 0) {
-                    clientX = evt.touches[0].clientX;
-                    clientY = evt.touches[0].clientY;
-                } else if (evt.clientX !== undefined) {
-                    clientX = evt.clientX;
-                    clientY = evt.clientY;
-                } else if (e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else if (e.clientX !== undefined) {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
-                
-                this.previousPosition = { x: clientX, y: clientY };
-                
-                // Evitem el salt en aturar l'animació fixant la rotació actual
+                // Evitem el salt en aturar l'animació fixant la rotació actual exacta
                 if (this.el.hasAttribute('animation')) {
-                    const currentRot = this.el.object3D.rotation;
-                    const rotX = THREE.MathUtils.radToDeg(currentRot.x);
-                    const rotY = THREE.MathUtils.radToDeg(currentRot.y);
-                    const rotZ = THREE.MathUtils.radToDeg(currentRot.z);
+                    const currentRot = this.el.object3D.rotation.clone(); // Fem una còpia segura dels angles
                     this.el.removeAttribute('animation');
-                    this.el.setAttribute('rotation', rotX + ' ' + rotY + ' ' + rotZ);
+                    
+                    // Forcem que l'objecte mantingui la rotació clonada immediatament
+                    this.el.object3D.rotation.copy(currentRot);
+                    
+                    // Sincronitzem amb l'atribut d'A-Frame per estabilitzar
+                    this.el.setAttribute('rotation', {
+                        x: THREE.MathUtils.radToDeg(currentRot.x),
+                        y: THREE.MathUtils.radToDeg(currentRot.y),
+                        z: THREE.MathUtils.radToDeg(currentRot.z)
+                    });
                 }
 
                 window.addEventListener('mousemove', this.onDragMove);
@@ -1050,15 +1040,20 @@
             onDragMove: function (e) {
                 if (!this.isDragging) return;
                 
-                let currentX = this.previousPosition.x;
-                let currentY = this.previousPosition.y;
-                
+                let currentX, currentY;
                 if (e.touches && e.touches.length > 0) {
                     currentX = e.touches[0].clientX;
                     currentY = e.touches[0].clientY;
-                } else if (e.clientX !== undefined) {
+                } else {
                     currentX = e.clientX;
                     currentY = e.clientY;
+                }
+                
+                // En el primer moviment, fixem el punt de referència on es troba el dit/ratolí
+                if (this.previousPosition.x === null) {
+                    this.previousPosition.x = currentX;
+                    this.previousPosition.y = currentY;
+                    return;
                 }
                 
                 const deltaX = currentX - this.previousPosition.x;
