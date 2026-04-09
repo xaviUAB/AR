@@ -21,6 +21,26 @@
             components: {},
             systems: {}
         };
+
+        // Supressió d'errors a la consola si model-viewer intenta carregar un format incorrecte (ex: PNG dins d'un camp 3D) o rep un 404
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            const msg = args.join(' ');
+            if (msg.includes('is not valid JSON') || msg.includes('Unexpected token') || msg.includes('responded with 404') || msg.includes('fetch for')) {
+                return; 
+            }
+            originalConsoleError.apply(console, args);
+        };
+
+        // Prevenció d'unhandled rejections associades a aquest mateix error de parsing i 404s
+        window.addEventListener('unhandledrejection', function(event) {
+            if (event.reason) {
+                const reasonStr = event.reason.toString();
+                if (reasonStr.includes('JSON') || reasonStr.includes('Unexpected token') || reasonStr.includes('PNG') || reasonStr.includes('404') || reasonStr.includes('fetch') || event.reason instanceof SyntaxError) {
+                    event.preventDefault(); 
+                }
+            }
+        });
     </script>
     <!-- Importació de la biblioteca de MindAR (que inclou el compilador) -->
     <script type="module">
@@ -90,6 +110,26 @@
             <div class="mb-2 text-center mt-4">
                 <h2 class="text-3xl font-bold text-gray-800">Configuració del projecte</h2>
                 <p class="text-gray-500 text-base mt-2">Creeu experiències amb múltiples elements actius simultàniament.</p>
+            </div>
+
+            <!-- PARÀMETRES GLOBALS -->
+            <div class="glass-panel p-6 rounded-xl border-t-4 border-indigo-600">
+                <h3 class="font-semibold text-lg mb-4 flex items-center gap-2 text-indigo-800">
+                    <i class="fa-solid fa-gear"></i> Base Tecnològica
+                </h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Quin tipus de seguiment fareu servir?</label>
+                    <select id="globalTracking" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 outline-none" onchange="toggleGlobalSettings()">
+                        <option value="mindar">Imatges Naturals / Fotografies (MindAR)</option>
+                        <option value="arjs">Marcadors Clàssics d'alt contrast (AR.js)</option>
+                    </select>
+                </div>
+
+                <!-- Explicació MindAR Automàtic -->
+                <div id="mindarGlobalSettings" class="mt-4 bg-purple-50 p-5 rounded-lg border border-purple-100">
+                    <h4 class="font-medium text-sm text-purple-800 mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Compilació Automàtica</h4>
+                    <p class="text-sm text-purple-700 leading-relaxed">Amb la tecnologia MindAR, les imatges activadores que pengeu s'analitzaran i es compilaran automàticament en un fitxer <code>.mind</code> integrat en el moment de generar o provar el codi. No cal fer servir eines externes.</p>
+                </div>
             </div>
 
             <!-- CONTENIDOR D'ELEMENTS DINÀMICS -->
@@ -205,9 +245,17 @@
             <div class="mb-6">
                 <h4 class="text-md font-semibold text-gray-800 mb-3"><span class="bg-indigo-100 text-indigo-700 py-1 px-2 rounded mr-1">1</span> L'Activador (Referent)</h4>
                 
-                <div class="pt-2">
+                <div class="arjs-specific hidden space-y-3 mb-4">
+                    <select id="markerType-{id}" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none bg-white" onchange="toggleElementSettings({id}); updateThumbnails({id});">
+                        <option value="hiro">Marcador Clàssic: Hiro</option>
+                        <option value="pattern">Marcador Clàssic: Personalitzat (.patt)</option>
+                    </select>
+                    <input type="text" id="markerUrl-{id}" class="hidden w-full text-sm border border-gray-300 rounded-lg p-2.5" placeholder="Enllaç al fitxer .patt">
+                </div>
+
+                <div class="border-t border-gray-100 pt-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pengeu la imatge activadora de referència</label>
-                    <p class="text-xs text-gray-500 mb-3">Aquesta imatge es compilarà automàticament i l'aplicació la reconeixerà a través de la càmera de la persona que interactuï.</p>
+                    <p class="text-xs text-gray-500 mb-3 mindar-specific">Aquesta imatge es compilarà automàticament i l'aplicació la reconeixerà a través de la càmera de la persona que interactuï.</p>
                     <input id="triggerImage-{id}" type="file" accept="image/png, image/jpeg" onchange="handleFileUpload({id})" class="w-full text-sm border border-gray-300 rounded-lg p-2 text-gray-600 bg-gray-50 cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
                 </div>
             </div>
@@ -246,7 +294,7 @@
                     <option value="image">Imatge externa (via enllaç web o Drive)</option>
                     <option value="video">Vídeo extern (via enllaç web o Drive)</option>
                     <option value="audio">Àudio extern (via enllaç web o Drive)</option>
-                    <option value="model3d">Objecte 3D (.glb extern via enllaç web o Drive)</option>
+                    <option value="model3d">Objecte 3D (Format .glb o .gltf)</option>
                 </select>
 
                 <!-- Àrea de Text -->
@@ -274,7 +322,7 @@
                 <!-- Àrea d'Enllaç per Imatge/Vídeo/Àudio/3D -->
                 <div id="urlContentDiv-{id}" class="hidden space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Introduïu l'enllaç directe a l'arxiu:</label>
-                    <input type="url" id="contentUrl-{id}" placeholder="https://..." class="w-full text-sm border border-gray-300 rounded-lg p-3 outline-none bg-white" oninput="updateThumbnails({id})">
+                    <input type="url" id="contentUrl-{id}" placeholder="https://..." class="w-full text-sm border border-gray-300 rounded-lg p-3 outline-none bg-white" onchange="updateThumbnails({id})">
                 </div>
 
                 <div id="scaleDiv-{id}" class="mt-4 bg-gray-100 p-4 rounded-lg border border-gray-200">
@@ -283,13 +331,13 @@
                         <span id="scaleValue-{id}" class="text-indigo-700 font-bold bg-indigo-100 px-2 py-0.5 rounded text-sm">1.0</span>
                     </div>
                     <input type="range" id="contentScale-{id}" min="0.1" max="5" step="0.1" value="1.0" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('scaleValue-{id}').innerText = this.value;">
-                    <p class="text-xs text-gray-500 mt-2">Una escala d'1 aplicarà la mateixa mida al contingut que l'amplada de la imatge activadora de referència.</p>
+                    <p class="text-xs text-gray-500 mt-2">Una escala d'1 aplicarà automàticament la mateixa mida al contingut (model 3D, text o vídeo) que l'amplada de la imatge activadora de referència.</p>
                 </div>
                 
                 <!-- Nova Àrea: Enllaç Interactiu -->
                 <div id="interactionDiv-{id}" class="mt-4 bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                    <label class="block text-sm font-medium text-indigo-800 mb-1"><i class="fa-solid fa-hand-pointer"></i> Acció en tocar (Enllaç interactiu):</label>
-                    <p class="text-xs text-indigo-600 mb-2">Permet a la persona usuària accedir a un lloc web en tocar l'element a la pantalla (Opcional).</p>
+                    <label class="block text-sm font-medium text-indigo-800 mb-1"><i class="fa-solid fa-hand-pointer"></i> Acció (Enllaç interactiu):</label>
+                    <p class="text-xs text-indigo-600 mb-2">Permet a qui interactuï accedir a un lloc web. Funciona amb un sol toc (per a imatges, vídeos i text) o bé amb un <strong>doble toc seguit</strong> en cas de ser un model 3D.</p>
                     <input type="url" id="interactionUrl-{id}" placeholder="https://la-vostra-web.cat" class="w-full text-sm border border-indigo-300 rounded-lg p-3 outline-none bg-white focus:ring-2 focus:ring-indigo-400">
                 </div>
             </div>
@@ -332,8 +380,8 @@
         // === ESTAT DE L'APLICACIÓ I GESTIÓ D'ELEMENTS ===
         let elementCount = 0;
         let elementsArray = [];
-        window.cachedImages = {}; // Emmagatzema els Base64 de les imatges pujades (només triggers ara)
-        let elementToDelete = null; // Guarda l'identificador per a la confirmació d'eliminació
+        window.cachedImages = {}; 
+        let elementToDelete = null;
 
         function addElement() {
             elementCount++;
@@ -420,7 +468,7 @@
         // === GESTIÓ DE DESAR I CARREGAR EL PROJECTE ===
         function saveProject() {
             const projectData = {
-                version: "1.3", // Incrementem versió per contemplar interactionUrl
+                version: "1.6",
                 globalLat: document.getElementById('globalLat').value,
                 globalLng: document.getElementById('globalLng').value,
                 elementCount: elementCount,
@@ -464,12 +512,10 @@
                 try {
                     const project = JSON.parse(e.target.result);
                     
-                    // Netejar espai de treball actual
                     document.getElementById('elementsContainer').innerHTML = '';
                     elementsArray = [];
                     window.cachedImages = {};
                     
-                    // Restaurar variables globals del mapa
                     document.getElementById('globalLat').value = project.globalLat || '41.3851';
                     document.getElementById('globalLng').value = project.globalLng || '2.1734';
                     
@@ -482,7 +528,6 @@
 
                     elementCount = project.elementCount || 0;
 
-                    // Restaurar elements guardats
                     project.elements.forEach(el => {
                         const id = el.id;
                         elementsArray.push(id);
@@ -509,7 +554,6 @@
                         if(document.getElementById(`geoLng-${id}`)) document.getElementById(`geoLng-${id}`).value = el.geoLng;
                         if(document.getElementById(`geoRadius-${id}`)) document.getElementById(`geoRadius-${id}`).value = el.geoRadius;
 
-                        // Restaurar memòria de la imatge activadora
                         if(el.triggerImageB64) window.cachedImages[`trigger_${id}`] = el.triggerImageB64;
 
                         toggleElementSettings(id);
@@ -548,7 +592,6 @@
             else urlDiv.classList.remove('hidden');
         }
 
-        // Visibilitat dinàmica del mapa
         function updateMapVisibility() {
             let anyGeoActive = false;
             elementsArray.forEach(id => {
@@ -800,7 +843,7 @@
             let assetsHtml = '<a-assets timeout="10000">\n';
             let markersHtml = '';
             let requiresMediaPlay = false;
-            let requiresGeo = false; // Declaració afegida per solucionar l'error
+            let requiresGeo = false; 
             let validMindTargetIndex = 0;
 
             elementsArray.forEach((id) => {
@@ -809,7 +852,7 @@
                 const isGeo = document.getElementById(`geoToggle-${id}`)?.checked || false;
                 const interactionUrl = document.getElementById(`interactionUrl-${id}`)?.value || '';
 
-                if (isGeo) requiresGeo = true; // Actualització de la variable
+                if (isGeo) requiresGeo = true; 
 
                 let currentTargetIndex = validMindTargetIndex;
                 if (window.cachedImages[`trigger_${id}`]) {
@@ -833,7 +876,15 @@
                 
                 if (interactionUrl) {
                     extraClasses.push('clickable');
-                    extraAttrs.push(`clickable-link="url: ${interactionUrl}"`);
+                    const safeUrl = interactionUrl.replace(/"/g, '&quot;');
+                    extraAttrs.push(`clickable-link="url: ${safeUrl}; type: ${cType}"`);
+                } else if (cType === 'model3d') {
+                    // Fins i tot si no hi ha url interactiu, el model ha de rebre events per a la rotació arrossegant
+                    extraClasses.push('clickable');
+                }
+
+                if (cType === 'model3d') {
+                    extraAttrs.push('drag-rotate');
                 }
 
                 const classStr = extraClasses.length > 0 ? `class="${extraClasses.join(' ')}"` : '';
@@ -861,7 +912,7 @@
                         requiresMediaPlay = true;
                         entityHtml = `            <a-entity dynamic-text="text: 🔊; textColor: #ffffff; bgColor: #4f46e5; bgTransparent: false" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale * 0.5} ${cScale * 0.5} ${cScale * 0.5}" media-handler="target: #${mediaId}" ${classStr} ${attrStr}></a-entity>\n`;
                     } else if (cType === 'model3d') {
-                        entityHtml = `            <a-gltf-model src="${cUrlSafe}" position="0 0 0" scale="${cScale} ${cScale} ${cScale}" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000" crossorigin="anonymous" ${classStr} ${attrStr}></a-gltf-model>\n`;
+                        entityHtml = `            <a-gltf-model src="${cUrlSafe}" position="${contentPosition}" rotation="${contentRotation}" auto-scale-model="userScale: ${cScale}" crossorigin="anonymous" ${classStr} ${attrStr}></a-gltf-model>\n`;
                     }
                 }
 
@@ -912,7 +963,7 @@
             sceneEl.setAttribute('vr-mode-ui', 'enabled: false');
             sceneEl.setAttribute('device-orientation-permission-ui', 'enabled: false');
 
-            sceneEl.innerHTML = '<a-camera position="0 0 0" look-controls="enabled: false"><a-entity cursor="rayOrigin: mouse;" raycaster="objects: .clickable"></a-entity></a-camera>' + 
+            sceneEl.innerHTML = '<a-camera position="0 0 0" look-controls="enabled: false"><a-entity cursor="rayOrigin: mouse; fuse: false;" raycaster="objects: .clickable; near: 0; far: 10000;"></a-entity></a-camera>' + 
                                 '${safeAssets}' + 
                                 '${safeMarkers}';
                                 
@@ -950,12 +1001,104 @@
             }
         });
 
-        AFRAME.registerComponent('clickable-link', {
-            schema: { url: {type: 'string'} },
+        AFRAME.registerComponent('drag-rotate', {
             init: function () {
+                this.isDragging = false;
+                this.previousPosition = { x: 0, y: 0 };
+                this.onDragStart = this.onDragStart.bind(this);
+                this.onDragMove = this.onDragMove.bind(this);
+                this.onDragEnd = this.onDragEnd.bind(this);
+                
+                this.el.addEventListener('mousedown', this.onDragStart);
+                this.el.addEventListener('touchstart', this.onDragStart);
+            },
+            onDragStart: function (e) {
+                this.isDragging = true;
+                const evt = (e.detail && e.detail.mouseEvent) ? e.detail.mouseEvent : e;
+                let clientX = 0, clientY = 0;
+                
+                if (evt.touches && evt.touches.length > 0) {
+                    clientX = evt.touches[0].clientX;
+                    clientY = evt.touches[0].clientY;
+                } else if (evt.clientX !== undefined) {
+                    clientX = evt.clientX;
+                    clientY = evt.clientY;
+                }
+                
+                this.previousPosition = { x: clientX, y: clientY };
+                this.el.removeAttribute('animation');
+
+                window.addEventListener('mousemove', this.onDragMove);
+                window.addEventListener('touchmove', this.onDragMove, {passive: false});
+                window.addEventListener('mouseup', this.onDragEnd);
+                window.addEventListener('touchend', this.onDragEnd);
+            },
+            onDragMove: function (e) {
+                if (!this.isDragging) return;
+                
+                let currentX = this.previousPosition.x;
+                let currentY = this.previousPosition.y;
+                
+                if (e.touches && e.touches.length > 0) {
+                    currentX = e.touches[0].clientX;
+                    currentY = e.touches[0].clientY;
+                } else if (e.clientX !== undefined) {
+                    currentX = e.clientX;
+                    currentY = e.clientY;
+                }
+                
+                const deltaX = currentX - this.previousPosition.x;
+                const deltaY = currentY - this.previousPosition.y;
+                
+                this.previousPosition.x = currentX;
+                this.previousPosition.y = currentY;
+
+                const factor = 0.01;
+                this.el.object3D.rotation.y += deltaX * factor;
+                this.el.object3D.rotation.x += deltaY * factor; 
+            },
+            onDragEnd: function () {
+                this.isDragging = false;
+                window.removeEventListener('mousemove', this.onDragMove);
+                window.removeEventListener('touchmove', this.onDragMove);
+                window.removeEventListener('mouseup', this.onDragEnd);
+                window.removeEventListener('touchend', this.onDragEnd);
+            }
+        });
+
+        AFRAME.registerComponent('clickable-link', {
+            schema: { 
+                url: {type: 'string'},
+                type: {type: 'string', default: 'other'}
+            },
+            init: function () {
+                this.lastTime = 0;
+                
                 this.el.addEventListener('click', () => {
-                    if (this.data.url) {
-                        window.open(this.data.url, '_blank');
+                    const time = new Date().getTime();
+                    
+                    const triggerLink = () => {
+                        if (this.data.url) {
+                            try {
+                                const win = window.open(this.data.url, '_blank');
+                                if (!win) {
+                                    window.location.href = this.data.url;
+                                }
+                            } catch (e) {
+                                window.location.href = this.data.url;
+                            }
+                        }
+                    };
+
+                    if (this.data.type === 'model3d') {
+                        if (time - this.lastTime < 400) {
+                            triggerLink();
+                            this.lastTime = 0;
+                        } else {
+                            this.lastTime = time;
+                        }
+                    } else {
+                        triggerLink();
                     }
                 });
             }
@@ -980,6 +1123,36 @@
                         }
                     }
                 }
+            }
+        });
+
+        AFRAME.registerComponent('auto-scale-model', {
+            schema: { userScale: {type: 'number', default: 1.0} },
+            init: function () {
+                this.el.addEventListener('model-loaded', () => {
+                    const obj = this.el.getObject3D('mesh');
+                    if (obj) {
+                        const clone = obj.clone();
+                        clone.position.set(0,0,0);
+                        clone.rotation.set(0,0,0);
+                        clone.scale.set(1,1,1);
+                        clone.updateMatrixWorld(true);
+                        
+                        const box = new THREE.Box3().setFromObject(clone);
+                        const size = new THREE.Vector3();
+                        box.getSize(size);
+                        const center = new THREE.Vector3();
+                        box.getCenter(center);
+
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        if (maxDim > 0) {
+                            const scaleFactor = this.data.userScale / maxDim;
+                            this.el.setAttribute('scale', scaleFactor + ' ' + scaleFactor + ' ' + scaleFactor);
+                        }
+
+                        obj.position.sub(center);
+                    }
+                });
             }
         });
 
@@ -1018,7 +1191,6 @@
                 }
                 const texture = new THREE.CanvasTexture(canvas);
                 const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
-                // Text escalat nativament a 1x1 respecte a l'activador
                 this.el.setObject3D('mesh', new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material));
             }
         });
