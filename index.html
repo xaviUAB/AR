@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creació d'Experiències de Realitat Augmentada Multimarcador</title>
+    <title>Editor d'experiències de realitat Augmentada</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -64,7 +64,7 @@
     <header class="bg-indigo-600 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0 flex-wrap gap-4">
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-layer-group text-2xl"></i>
-            <h1 class="text-xl font-bold tracking-wide">Estudi AR Multimarcador</h1>
+            <h1 class="text-xl font-bold tracking-wide">Editor d'experiències de realitat Augmentada</h1>
             <div class="hidden md:flex text-xs bg-indigo-500 px-3 py-1 rounded-full border border-indigo-400 ml-2">
                 <i class="fa-solid fa-bolt mr-1 mt-0.5"></i> Compilació Integrada
             </div>
@@ -92,32 +92,21 @@
                 <p class="text-gray-500 text-base mt-2">Creeu experiències amb múltiples elements actius simultàniament.</p>
             </div>
 
-            <!-- PARÀMETRES GLOBALS -->
-            <div class="glass-panel p-6 rounded-xl border-t-4 border-indigo-600">
-                <h3 class="font-semibold text-lg mb-4 flex items-center gap-2 text-indigo-800">
-                    <i class="fa-solid fa-gear"></i> Base Tecnològica
-                </h3>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Quin tipus de seguiment fareu servir?</label>
-                    <select id="globalTracking" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 outline-none" onchange="toggleGlobalSettings()">
-                        <option value="mindar">Imatges Naturals / Fotografies (MindAR)</option>
-                        <option value="arjs">Marcadors Clàssics d'alt contrast (AR.js)</option>
-                    </select>
-                </div>
-
-                <!-- Explicació MindAR Automàtic -->
-                <div id="mindarGlobalSettings" class="mt-4 bg-purple-50 p-5 rounded-lg border border-purple-100">
-                    <h4 class="font-medium text-sm text-purple-800 mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Compilació Automàtica</h4>
-                    <p class="text-sm text-purple-700 leading-relaxed">Amb la tecnologia MindAR, les imatges activadores que pengeu s'analitzaran i es compilaran automàticament en un fitxer <code>.mind</code> integrat en el moment de generar o provar el codi. No cal fer servir eines externes.</p>
-                </div>
+            <!-- CONTENIDOR D'ELEMENTS DINÀMICS -->
+            <div id="elementsContainer" class="space-y-6 mt-4">
+                <!-- Els elements s'injectaran aquí -->
             </div>
 
-            <!-- EINES GLOBALS: MAPA -->
-            <div class="glass-panel p-6 rounded-xl">
+            <button onclick="addElement()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-2 border-indigo-300 border-dashed font-bold py-6 px-4 rounded-xl transition-all shadow-sm flex justify-center items-center gap-2 text-lg">
+                <i class="fa-solid fa-plus-circle text-2xl"></i> Afegir un nou element de Realitat Augmentada
+            </button>
+
+            <!-- EINES GLOBALS: MAPA (Ocult per defecte) -->
+            <div id="mapContainer" class="glass-panel p-6 rounded-xl hidden mt-4 border-t-4 border-emerald-500">
                 <h3 class="font-semibold text-lg mb-3 flex items-center gap-2 text-gray-700">
-                    <i class="fa-solid fa-map-location-dot text-emerald-600"></i> Mapa de Referència
+                    <i class="fa-solid fa-map-location-dot text-emerald-600"></i> Mapa de Referència General
                 </h3>
-                <p class="text-sm text-gray-500 mb-4">Feu servir aquest mapa per obtenir coordenades i assignar-les als diferents elements que creeu a sota, si voleu limitar-ne l'aparició a una zona geogràfica determinada.</p>
+                <p class="text-sm text-gray-500 mb-4">Feu servir aquest mapa per obtenir coordenades fàcilment i copiar-les a les restriccions geogràfiques dels vostres elements.</p>
                 <div id="geoMap" class="w-full h-64 rounded-lg border border-gray-300 mb-4 relative shadow-inner"></div>
                 <div class="flex gap-3">
                     <div class="flex-1">
@@ -137,20 +126,16 @@
                 <p id="geoStatus" class="text-sm font-medium text-center mt-3 hidden"></p>
             </div>
 
-            <!-- CONTENIDOR D'ELEMENTS DINÀMICS -->
-            <div id="elementsContainer" class="space-y-6 mt-4">
-                <!-- Els elements s'injectaran aquí -->
-            </div>
-
-            <button onclick="addElement()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-2 border-indigo-300 border-dashed font-bold py-6 px-4 rounded-xl transition-all shadow-sm flex justify-center items-center gap-2 text-lg">
-                <i class="fa-solid fa-plus-circle text-2xl"></i> Afegir un nou element de Realitat Augmentada
-            </button>
+            <!-- PEU DE PÀGINA -->
+            <footer class="mt-8 pt-6 border-t border-gray-300 text-center text-gray-500 text-sm">
+                <p class="font-semibold text-gray-600">Un desenvolupament de Xavier Ribes</p>
+                <p class="mt-1">Departament de Comunicació Audiovisual i Publicitat de la UAB</p>
+            </footer>
 
         </div>
     </main>
 
     <!-- Barra Inferior Fixa (Accions Principals) -->
-    <!-- S'ha afegit z-[100] per garantir que es mostra per sobre de tota la resta -->
     <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] flex justify-center items-center gap-4 z-[100]">
         <button onclick="executeAction('preview')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-base font-semibold py-3 px-8 rounded-lg transition-all shadow-md flex items-center gap-2 transform hover:scale-105">
             <i class="fa-solid fa-play"></i> Provar Experiència
@@ -210,7 +195,7 @@
     <!-- TEMPLATE PER ALS ELEMENTS DINÀMICS -->
     <template id="elementTemplate">
         <div class="element-card glass-panel p-6 rounded-xl border-l-8 border-indigo-500 shadow-md relative transition-all mt-4" id="card-{id}">
-            <!-- Botó per eliminar l'element sencer, enllaçat amb el modal de confirmació -->
+            <!-- Botó per eliminar l'element sencer -->
             <button onclick="confirmRemoveElement({id})" class="absolute top-4 right-4 text-red-500 hover:text-white hover:bg-red-600 transition-colors p-2 px-3 bg-red-50 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-sm border border-red-200 hover:border-red-600" title="Eliminar aquest element d'interacció">
                 <i class="fa-solid fa-trash"></i> Eliminar
             </button>
@@ -220,18 +205,10 @@
             <div class="mb-6">
                 <h4 class="text-md font-semibold text-gray-800 mb-3"><span class="bg-indigo-100 text-indigo-700 py-1 px-2 rounded mr-1">1</span> L'Activador (Referent)</h4>
                 
-                <div class="arjs-specific hidden space-y-3 mb-4">
-                    <select id="markerType-{id}" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none bg-white" onchange="toggleElementSettings({id}); updateThumbnails({id});">
-                        <option value="hiro">Marcador Clàssic: Hiro</option>
-                        <option value="pattern">Marcador Clàssic: Personalitzat (.patt)</option>
-                    </select>
-                    <input type="text" id="markerUrl-{id}" class="hidden w-full text-sm border border-gray-300 rounded-lg p-2.5" placeholder="Enllaç al fitxer .patt">
-                </div>
-
-                <div class="border-t border-gray-100 pt-3">
+                <div class="pt-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pengeu la imatge activadora de referència</label>
-                    <p class="text-xs text-gray-500 mb-3 mindar-specific">Aquesta imatge es compilarà automàticament i l'aplicació la reconeixerà a través de la càmera de la persona que interactuï.</p>
-                    <input id="triggerImage-{id}" type="file" accept="image/png, image/jpeg" onchange="handleFileUpload({id}, 'trigger')" class="w-full text-sm border border-gray-300 rounded-lg p-2 text-gray-600 bg-gray-50 cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                    <p class="text-xs text-gray-500 mb-3">Aquesta imatge es compilarà automàticament i l'aplicació la reconeixerà a través de la càmera de la persona que interactuï.</p>
+                    <input id="triggerImage-{id}" type="file" accept="image/png, image/jpeg" onchange="handleFileUpload({id})" class="w-full text-sm border border-gray-300 rounded-lg p-2 text-gray-600 bg-gray-50 cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
                 </div>
             </div>
 
@@ -239,7 +216,7 @@
             <div class="mb-6 bg-indigo-50 border border-indigo-100 rounded-xl p-5 shadow-inner">
                 <h4 class="text-sm font-semibold text-indigo-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-eye"></i> Previsualització Ràpida</h4>
                 <div class="flex gap-6 items-center">
-                    <!-- Activador (Quadrat perfecte) -->
+                    <!-- Activador -->
                     <div class="flex-1 text-center group flex flex-col items-center">
                         <p class="text-xs font-bold text-indigo-600 mb-2 uppercase tracking-wider">Activador</p>
                         <div id="triggerThumb-{id}" class="w-full max-w-[150px] aspect-square bg-white rounded-xl cursor-pointer flex items-center justify-center overflow-hidden border-2 border-indigo-200 group-hover:border-indigo-500 group-hover:shadow-lg transition-all shadow-sm p-1" onclick="openTriggerPreview({id})" title="Ampliar">
@@ -251,7 +228,7 @@
                         <i class="fa-solid fa-arrow-right-long text-indigo-300 text-2xl"></i>
                     </div>
                     
-                    <!-- Contingut (Quadrat perfecte) -->
+                    <!-- Contingut -->
                     <div class="flex-1 text-center group flex flex-col items-center">
                         <p class="text-xs font-bold text-indigo-600 mb-2 uppercase tracking-wider">Contingut a Mostrar</p>
                         <div id="contentThumb-{id}" class="w-full max-w-[150px] aspect-square bg-white rounded-xl cursor-pointer flex items-center justify-center overflow-hidden border-2 border-indigo-200 group-hover:border-indigo-500 group-hover:shadow-lg transition-all shadow-sm p-1" onclick="openContentPreview({id})" title="Previsualitzar">
@@ -266,7 +243,7 @@
                 <h4 class="text-md font-semibold text-gray-800 mb-3"><span class="bg-indigo-100 text-indigo-700 py-1 px-2 rounded mr-1">2</span> Paràmetres del Contingut</h4>
                 <select id="contentType-{id}" class="w-full text-sm border border-gray-300 rounded-lg p-3 mb-4 outline-none bg-white font-medium text-gray-700" onchange="toggleElementSettings({id}); updateThumbnails({id});">
                     <option value="text">Missatge de text flotant</option>
-                    <option value="image">Imatge local (es pujarà i s'incrustarà al codi)</option>
+                    <option value="image">Imatge externa (via enllaç web o Drive)</option>
                     <option value="video">Vídeo extern (via enllaç web o Drive)</option>
                     <option value="audio">Àudio extern (via enllaç web o Drive)</option>
                     <option value="model3d">Objecte 3D (.glb extern via enllaç web o Drive)</option>
@@ -275,25 +252,26 @@
                 <!-- Àrea de Text -->
                 <div id="textContentDiv-{id}" class="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <textarea id="textContent-{id}" rows="2" class="w-full text-sm border border-gray-300 rounded-lg p-3 outline-none" placeholder="El vostre text..." oninput="updateThumbnails({id})">Missatge interactiu d'exemple</textarea>
-                    <div class="flex gap-4">
-                        <div class="flex-1">
+                    <div class="flex gap-4 items-end flex-wrap">
+                        <div class="flex-1 min-w-[120px]">
                             <label class="block text-xs font-medium text-gray-600 mb-1">Color de la lletra</label>
                             <input type="color" id="textColor-{id}" value="#ffffff" class="w-full h-8 rounded cursor-pointer border border-gray-300" onchange="updateThumbnails({id})">
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1 min-w-[120px]">
                             <label class="block text-xs font-medium text-gray-600 mb-1">Color de fons</label>
                             <input type="color" id="textBgColor-{id}" value="#4f46e5" class="w-full h-8 rounded cursor-pointer border border-gray-300" onchange="updateThumbnails({id})">
+                        </div>
+                        <div class="flex-1 min-w-[150px] flex items-center pb-1">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="bgTransparent-{id}" class="sr-only peer" onchange="updateThumbnails({id})">
+                                <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500 shadow-sm"></div>
+                                <span class="ml-2 text-xs font-medium text-gray-700">Fons transparent</span>
+                            </label>
                         </div>
                     </div>
                 </div>
 
-                <!-- Àrea d'Imatge Local -->
-                <div id="imageContentDiv-{id}" class="hidden space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Pengeu la imatge que apareixerà a la realitat augmentada:</label>
-                    <input id="contentImageFile-{id}" type="file" accept="image/png, image/jpeg" onchange="handleFileUpload({id}, 'content')" class="w-full text-sm border border-gray-300 rounded-lg p-2 text-gray-600 bg-white cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-                </div>
-
-                <!-- Àrea d'Enllaç per Vídeo/Àudio/3D -->
+                <!-- Àrea d'Enllaç per Imatge/Vídeo/Àudio/3D -->
                 <div id="urlContentDiv-{id}" class="hidden space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Introduïu l'enllaç directe a l'arxiu:</label>
                     <input type="url" id="contentUrl-{id}" placeholder="https://..." class="w-full text-sm border border-gray-300 rounded-lg p-3 outline-none bg-white" oninput="updateThumbnails({id})">
@@ -302,9 +280,17 @@
                 <div id="scaleDiv-{id}" class="mt-4 bg-gray-100 p-4 rounded-lg border border-gray-200">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-sm font-medium text-gray-700">Mida de visualització (Escala)</label>
-                        <span id="scaleValue-{id}" class="text-indigo-700 font-bold bg-indigo-100 px-2 py-0.5 rounded text-sm">1.5</span>
+                        <span id="scaleValue-{id}" class="text-indigo-700 font-bold bg-indigo-100 px-2 py-0.5 rounded text-sm">1.0</span>
                     </div>
-                    <input type="range" id="contentScale-{id}" min="0.1" max="5" step="0.1" value="1.5" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('scaleValue-{id}').innerText = this.value;">
+                    <input type="range" id="contentScale-{id}" min="0.1" max="5" step="0.1" value="1.0" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('scaleValue-{id}').innerText = this.value;">
+                    <p class="text-xs text-gray-500 mt-2">Una escala d'1 aplicarà la mateixa mida al contingut que l'amplada de la imatge activadora de referència.</p>
+                </div>
+                
+                <!-- Nova Àrea: Enllaç Interactiu -->
+                <div id="interactionDiv-{id}" class="mt-4 bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                    <label class="block text-sm font-medium text-indigo-800 mb-1"><i class="fa-solid fa-hand-pointer"></i> Acció en tocar (Enllaç interactiu):</label>
+                    <p class="text-xs text-indigo-600 mb-2">Permet a la persona usuària accedir a un lloc web en tocar l'element a la pantalla (Opcional).</p>
+                    <input type="url" id="interactionUrl-{id}" placeholder="https://la-vostra-web.cat" class="w-full text-sm border border-indigo-300 rounded-lg p-3 outline-none bg-white focus:ring-2 focus:ring-indigo-400">
                 </div>
             </div>
 
@@ -313,7 +299,7 @@
                 <div class="flex items-center justify-between mb-2">
                     <h4 class="text-sm font-semibold text-gray-800 flex items-center gap-2"><span class="bg-indigo-100 text-indigo-700 py-1 px-2 rounded mr-1">3</span> <i class="fa-solid fa-location-dot"></i> Restricció Geogràfica</h4>
                     <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="geoToggle-{id}" class="sr-only peer" onchange="toggleElementSettings({id})">
+                        <input type="checkbox" id="geoToggle-{id}" class="sr-only peer" onchange="toggleElementSettings({id}); updateMapVisibility();">
                         <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 shadow-sm"></div>
                     </label>
                 </div>
@@ -346,7 +332,7 @@
         // === ESTAT DE L'APLICACIÓ I GESTIÓ D'ELEMENTS ===
         let elementCount = 0;
         let elementsArray = [];
-        window.cachedImages = {}; // Emmagatzema els Base64 de les imatges pujades
+        window.cachedImages = {}; // Emmagatzema els Base64 de les imatges pujades (només triggers ara)
         let elementToDelete = null; // Guarda l'identificador per a la confirmació d'eliminació
 
         function addElement() {
@@ -359,9 +345,9 @@
             
             document.getElementById('elementsContainer').insertAdjacentHTML('beforeend', html);
             
-            toggleGlobalSettings();
             toggleElementSettings(id);
             updateThumbnails(id);
+            updateMapVisibility();
         }
 
         // === FUNCIONS PER AL MODAL D'ELIMINAR ===
@@ -402,7 +388,6 @@
         function removeElement(id) {
             elementsArray = elementsArray.filter(e => e !== id);
             delete window.cachedImages[`trigger_${id}`];
-            delete window.cachedImages[`content_${id}`];
             
             const card = document.getElementById(`card-${id}`);
             if (card) {
@@ -410,23 +395,24 @@
                 card.style.transform = 'scale(0.95)';
                 setTimeout(() => {
                     card.remove();
+                    updateMapVisibility();
                 }, 200);
             }
         }
 
         // === CÀRREGA DE FITXERS I CONVERSIÓ A BASE64 ===
-        function handleFileUpload(id, type) {
-            const inputId = type === 'trigger' ? `triggerImage-${id}` : `contentImageFile-${id}`;
+        function handleFileUpload(id) {
+            const inputId = `triggerImage-${id}`;
             const file = document.getElementById(inputId).files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    window.cachedImages[`${type}_${id}`] = e.target.result;
+                    window.cachedImages[`trigger_${id}`] = e.target.result;
                     updateThumbnails(id);
                 };
                 reader.readAsDataURL(file);
             } else {
-                delete window.cachedImages[`${type}_${id}`];
+                delete window.cachedImages[`trigger_${id}`];
                 updateThumbnails(id);
             }
         }
@@ -434,27 +420,25 @@
         // === GESTIÓ DE DESAR I CARREGAR EL PROJECTE ===
         function saveProject() {
             const projectData = {
-                version: "1.0",
-                globalTracking: document.getElementById('globalTracking').value,
+                version: "1.3", // Incrementem versió per contemplar interactionUrl
                 globalLat: document.getElementById('globalLat').value,
                 globalLng: document.getElementById('globalLng').value,
                 elementCount: elementCount,
                 elements: elementsArray.map(id => ({
                     id: id,
-                    markerType: document.getElementById(`markerType-${id}`)?.value || 'hiro',
-                    markerUrl: document.getElementById(`markerUrl-${id}`)?.value || '',
                     contentType: document.getElementById(`contentType-${id}`)?.value || 'text',
                     textContent: document.getElementById(`textContent-${id}`)?.value || '',
                     textColor: document.getElementById(`textColor-${id}`)?.value || '#ffffff',
                     textBgColor: document.getElementById(`textBgColor-${id}`)?.value || '#4f46e5',
+                    textBgTransparent: document.getElementById(`bgTransparent-${id}`)?.checked || false,
                     contentUrl: document.getElementById(`contentUrl-${id}`)?.value || '',
-                    contentScale: document.getElementById(`contentScale-${id}`)?.value || '1.5',
+                    interactionUrl: document.getElementById(`interactionUrl-${id}`)?.value || '',
+                    contentScale: document.getElementById(`contentScale-${id}`)?.value || '1.0',
                     geoToggle: document.getElementById(`geoToggle-${id}`)?.checked || false,
                     geoLat: document.getElementById(`geoLat-${id}`)?.value || '',
                     geoLng: document.getElementById(`geoLng-${id}`)?.value || '',
                     geoRadius: document.getElementById(`geoRadius-${id}`)?.value || '50',
-                    triggerImageB64: window.cachedImages[`trigger_${id}`] || null,
-                    contentImageB64: window.cachedImages[`content_${id}`] || null
+                    triggerImageB64: window.cachedImages[`trigger_${id}`] || null
                 }))
             };
 
@@ -485,11 +469,9 @@
                     elementsArray = [];
                     window.cachedImages = {};
                     
-                    // Restaurar variables globals
-                    document.getElementById('globalTracking').value = project.globalTracking || 'mindar';
+                    // Restaurar variables globals del mapa
                     document.getElementById('globalLat').value = project.globalLat || '41.3851';
                     document.getElementById('globalLng').value = project.globalLng || '2.1734';
-                    toggleGlobalSettings();
                     
                     if (geoMap && geoMarker) {
                         const lat = parseFloat(project.globalLat || '41.3851');
@@ -509,18 +491,17 @@
                         const html = template.replace(/{id}/g, id);
                         document.getElementById('elementsContainer').insertAdjacentHTML('beforeend', html);
 
-                        // Assignar valors desats a les caixes i paràmetres
-                        if(document.getElementById(`markerType-${id}`)) document.getElementById(`markerType-${id}`).value = el.markerType;
-                        if(document.getElementById(`markerUrl-${id}`)) document.getElementById(`markerUrl-${id}`).value = el.markerUrl;
                         if(document.getElementById(`contentType-${id}`)) document.getElementById(`contentType-${id}`).value = el.contentType;
                         if(document.getElementById(`textContent-${id}`)) document.getElementById(`textContent-${id}`).value = el.textContent;
                         if(document.getElementById(`textColor-${id}`)) document.getElementById(`textColor-${id}`).value = el.textColor;
                         if(document.getElementById(`textBgColor-${id}`)) document.getElementById(`textBgColor-${id}`).value = el.textBgColor;
+                        if(document.getElementById(`bgTransparent-${id}`)) document.getElementById(`bgTransparent-${id}`).checked = el.textBgTransparent || false;
                         if(document.getElementById(`contentUrl-${id}`)) document.getElementById(`contentUrl-${id}`).value = el.contentUrl;
+                        if(document.getElementById(`interactionUrl-${id}`)) document.getElementById(`interactionUrl-${id}`).value = el.interactionUrl || '';
                         
                         if(document.getElementById(`contentScale-${id}`)) {
-                            document.getElementById(`contentScale-${id}`).value = el.contentScale;
-                            document.getElementById(`scaleValue-${id}`).innerText = el.contentScale;
+                            document.getElementById(`contentScale-${id}`).value = el.contentScale || '1.0';
+                            document.getElementById(`scaleValue-${id}`).innerText = el.contentScale || '1.0';
                         }
 
                         if(document.getElementById(`geoToggle-${id}`)) document.getElementById(`geoToggle-${id}`).checked = el.geoToggle;
@@ -528,14 +509,14 @@
                         if(document.getElementById(`geoLng-${id}`)) document.getElementById(`geoLng-${id}`).value = el.geoLng;
                         if(document.getElementById(`geoRadius-${id}`)) document.getElementById(`geoRadius-${id}`).value = el.geoRadius;
 
-                        // Restaurar memòria de les imatges precarregades (Base64)
+                        // Restaurar memòria de la imatge activadora
                         if(el.triggerImageB64) window.cachedImages[`trigger_${id}`] = el.triggerImageB64;
-                        if(el.contentImageB64) window.cachedImages[`content_${id}`] = el.contentImageB64;
 
                         toggleElementSettings(id);
                         updateThumbnails(id);
                     });
 
+                    updateMapVisibility();
                     document.getElementById('loadProjectInput').value = '';
 
                 } catch (error) {
@@ -547,75 +528,59 @@
         }
 
         // === GESTIÓ DE LA INTERFÍCIE ===
-        function toggleGlobalSettings() {
-            const tracking = document.getElementById('globalTracking').value;
-            const mindSettings = document.getElementById('mindarGlobalSettings');
-            
-            if (tracking === 'mindar') mindSettings.classList.remove('hidden');
-            else mindSettings.classList.add('hidden');
-
-            elementsArray.forEach(id => {
-                const arjsDivs = document.querySelectorAll(`#card-${id} .arjs-specific`);
-                const mindarDivs = document.querySelectorAll(`#card-${id} .mindar-specific`);
-                
-                if (tracking === 'arjs') {
-                    arjsDivs.forEach(el => el.classList.remove('hidden'));
-                    mindarDivs.forEach(el => el.classList.add('hidden'));
-                } else {
-                    arjsDivs.forEach(el => el.classList.add('hidden'));
-                    mindarDivs.forEach(el => el.classList.remove('hidden'));
-                }
-            });
-        }
-
         function toggleElementSettings(id) {
-            const markerType = document.getElementById(`markerType-${id}`);
-            const markerUrl = document.getElementById(`markerUrl-${id}`);
-            if (markerType && markerUrl) {
-                if (markerType.value === 'pattern') markerUrl.classList.remove('hidden');
-                else markerUrl.classList.add('hidden');
-            }
-
             const contentType = document.getElementById(`contentType-${id}`).value;
             const textDiv = document.getElementById(`textContentDiv-${id}`);
-            const imageDiv = document.getElementById(`imageContentDiv-${id}`);
             const urlDiv = document.getElementById(`urlContentDiv-${id}`);
             
             const isGeoChecked = document.getElementById(`geoToggle-${id}`)?.checked;
             const geoFieldsDiv = document.getElementById(`geoFieldsDiv-${id}`);
+            
             if (geoFieldsDiv) {
                 if (isGeoChecked) geoFieldsDiv.classList.remove('hidden');
                 else geoFieldsDiv.classList.add('hidden');
             }
             
             textDiv.classList.add('hidden');
-            imageDiv.classList.add('hidden');
             urlDiv.classList.add('hidden');
 
             if (contentType === 'text') textDiv.classList.remove('hidden');
-            else if (contentType === 'image') imageDiv.classList.remove('hidden');
             else urlDiv.classList.remove('hidden');
+        }
+
+        // Visibilitat dinàmica del mapa
+        function updateMapVisibility() {
+            let anyGeoActive = false;
+            elementsArray.forEach(id => {
+                if (document.getElementById(`geoToggle-${id}`)?.checked) {
+                    anyGeoActive = true;
+                }
+            });
+            const mapContainer = document.getElementById('mapContainer');
+            if (anyGeoActive) {
+                mapContainer.classList.remove('hidden');
+                if (!geoMap) {
+                    initMap();
+                } else {
+                    setTimeout(() => geoMap.invalidateSize(), 100);
+                }
+            } else {
+                mapContainer.classList.add('hidden');
+            }
         }
 
         // === GESTIÓ DE MINIATURES I MODALS DE PREVISUALITZACIÓ ===
         function updateThumbnails(id) {
-            const trackingType = document.getElementById('globalTracking').value;
-            const markerType = document.getElementById(`markerType-${id}`)?.value;
             const tThumb = document.getElementById(`triggerThumb-${id}`);
             
             if (tThumb) {
-                if (trackingType === 'arjs' && markerType === 'hiro') {
-                    tThumb.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/4/48/Hiro_marker_ARjs.png" class="w-full h-full object-contain p-2">`;
+                const triggerB64 = window.cachedImages[`trigger_${id}`];
+                if (triggerB64) {
+                    tThumb.innerHTML = `<img src="${triggerB64}" class="w-full h-full object-contain p-1 rounded-xl">`;
                     tThumb.title = "Ampliar Imatge";
                 } else {
-                    const triggerB64 = window.cachedImages[`trigger_${id}`];
-                    if (triggerB64) {
-                        tThumb.innerHTML = `<img src="${triggerB64}" class="w-full h-full object-contain p-1 rounded-xl">`;
-                        tThumb.title = "Ampliar Imatge";
-                    } else {
-                        tThumb.innerHTML = `<i class="fa-solid fa-image text-indigo-200 text-5xl"></i>`;
-                        tThumb.title = "Fer clic per seleccionar una imatge";
-                    }
+                    tThumb.innerHTML = `<i class="fa-solid fa-image text-indigo-200 text-5xl"></i>`;
+                    tThumb.title = "Fer clic per seleccionar una imatge activadora";
                 }
             }
 
@@ -627,62 +592,52 @@
                     const txt = document.getElementById(`textContent-${id}`)?.value || 'T';
                     const color = document.getElementById(`textColor-${id}`)?.value || '#fff';
                     const bg = document.getElementById(`textBgColor-${id}`)?.value || '#000';
-                    cThumb.innerHTML = `<div style="color:${color}; background-color:${bg};" class="w-full h-full flex items-center justify-center font-bold text-sm p-2 text-center break-words overflow-hidden rounded-xl">${txt.substring(0,40)}${txt.length > 40 ? '...' : ''}</div>`;
+                    const isTransparent = document.getElementById(`bgTransparent-${id}`)?.checked;
+                    const actualBg = isTransparent ? 'transparent' : bg;
+                    
+                    cThumb.innerHTML = `<div style="color:${color}; background-color:${actualBg};" class="w-full h-full flex items-center justify-center font-bold text-sm p-2 text-center break-words overflow-hidden rounded-xl ${isTransparent ? 'border-2 border-dashed border-gray-300' : ''}">${txt.substring(0,40)}${txt.length > 40 ? '...' : ''}</div>`;
                     cThumb.title = "Previsualitzar Contingut";
-                } else if (cType === 'image') {
-                    const contentB64 = window.cachedImages[`content_${id}`];
-                    if (contentB64) {
-                        cThumb.innerHTML = `<img src="${contentB64}" class="w-full h-full object-contain p-1 rounded-xl">`;
-                        cThumb.title = "Ampliar Imatge";
-                    } else {
-                        cThumb.innerHTML = `<i class="fa-solid fa-image text-indigo-200 text-5xl"></i>`;
-                        cThumb.title = "Fer clic per seleccionar una imatge";
-                    }
                 } else {
                     const rawUrl = document.getElementById(`contentUrl-${id}`)?.value;
                     const cUrlSafe = parseGoogleDriveUrl(rawUrl, cType);
                     
-                    if (cType === 'video' && cUrlSafe) {
+                    if (cType === 'image' && cUrlSafe) {
+                        cThumb.innerHTML = `<img src="${cUrlSafe}" class="w-full h-full object-contain p-1 rounded-xl">`;
+                        cThumb.title = "Ampliar Imatge";
+                    } else if (cType === 'video' && cUrlSafe) {
                         cThumb.innerHTML = `<div class="relative w-full h-full rounded-xl overflow-hidden p-1">
                                                 <video src="${cUrlSafe}#t=0.1" class="w-full h-full object-contain bg-black rounded" muted preload="metadata"></video>
                                                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                                                     <div class="bg-black/50 rounded-full w-12 h-12 flex items-center justify-center"><i class="fa-solid fa-play text-white text-xl"></i></div>
                                                 </div>
                                             </div>`;
+                        cThumb.title = "Previsualitzar Contingut";
                     } else if (cType === 'audio' && cUrlSafe) {
                         cThumb.innerHTML = `<div class="relative w-full h-full flex items-center justify-center bg-gray-100 rounded-xl"><i class="fa-solid fa-music text-purple-500 text-5xl"></i></div>`;
+                        cThumb.title = "Previsualitzar Contingut";
                     } else if (cType === 'model3d' && cUrlSafe) {
                         cThumb.innerHTML = `<model-viewer src="${cUrlSafe}" class="thumb-model-viewer p-1" auto-rotate disable-zoom disable-pan shadow-intensity="1"></model-viewer>`;
+                        cThumb.title = "Previsualitzar Contingut";
                     } else {
-                        cThumb.innerHTML = `<i class="fa-solid fa-link text-indigo-200 text-5xl"></i>`;
+                        // Icona per defecte si no hi ha enllaç o el format no coincideix visualment
+                        if (cType === 'image') cThumb.innerHTML = `<i class="fa-solid fa-image text-indigo-200 text-5xl"></i>`;
+                        else cThumb.innerHTML = `<i class="fa-solid fa-link text-indigo-200 text-5xl"></i>`;
+                        cThumb.title = "Introduïu un enllaç a l'apartat corresponent per veure el contingut";
                     }
-                    cThumb.title = "Previsualitzar Contingut";
                 }
             }
         }
 
         function openTriggerPreview(id) {
-            const trackingType = document.getElementById('globalTracking').value;
-            const markerType = document.getElementById(`markerType-${id}`)?.value;
-
-            if (trackingType === 'arjs' && markerType === 'hiro') {
+            const triggerB64 = window.cachedImages[`trigger_${id}`];
+            if (triggerB64) {
                 const container = document.getElementById('previewContainer');
                 const title = document.getElementById('previewTitle');
                 title.innerText = "Imatge Activadora";
-                container.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/4/48/Hiro_marker_ARjs.png" class="w-full h-full object-contain p-6 bg-white">`;
+                container.innerHTML = `<img src="${triggerB64}" class="w-full h-full object-contain p-4 bg-white">`;
                 document.getElementById('previewModal').classList.remove('hidden');
             } else {
-                const triggerB64 = window.cachedImages[`trigger_${id}`];
-                if (triggerB64) {
-                    const container = document.getElementById('previewContainer');
-                    const title = document.getElementById('previewTitle');
-                    title.innerText = "Imatge Activadora";
-                    container.innerHTML = `<img src="${triggerB64}" class="w-full h-full object-contain p-4 bg-white">`;
-                    document.getElementById('previewModal').classList.remove('hidden');
-                } else {
-                    // Si no hi ha cap imatge carregada, obrim l'explorador de fitxers directament per comoditat
-                    document.getElementById(`triggerImage-${id}`).click();
-                }
+                document.getElementById(`triggerImage-${id}`).click();
             }
         }
 
@@ -696,22 +651,19 @@
                 const text = document.getElementById(`textContent-${id}`).value;
                 const color = document.getElementById(`textColor-${id}`).value;
                 const bgColor = document.getElementById(`textBgColor-${id}`).value;
-                container.innerHTML = `<div style="color:${color}; background-color:${bgColor};" class="w-full h-full p-8 text-center text-3xl overflow-auto flex items-center justify-center break-words whitespace-pre-wrap">${text}</div>`;
+                const isTransparent = document.getElementById(`bgTransparent-${id}`)?.checked;
+                const actualBg = isTransparent ? 'transparent' : bgColor;
+                
+                container.innerHTML = `<div style="color:${color}; background-color:${actualBg};" class="w-full h-full p-8 text-center text-3xl overflow-auto flex items-center justify-center break-words whitespace-pre-wrap ${isTransparent ? 'border-4 border-dashed border-gray-500' : ''}">${text}</div>`;
                 document.getElementById('previewModal').classList.remove('hidden');
-            } else if (type === 'image') {
-                const contentB64 = window.cachedImages[`content_${id}`];
-                if (contentB64) {
-                    container.innerHTML = `<img src="${contentB64}" class="w-full h-full object-contain p-4">`;
-                    document.getElementById('previewModal').classList.remove('hidden');
-                } else {
-                    document.getElementById(`contentImageFile-${id}`).click();
-                }
             } else {
                 const rawUrl = document.getElementById(`contentUrl-${id}`).value;
                 const safeUrl = parseGoogleDriveUrl(rawUrl, type);
                 
                 if (!safeUrl) {
                     container.innerHTML = `<div class="w-full h-full flex flex-col justify-center items-center text-gray-300 text-center bg-gray-800 p-10"><i class="fa-solid fa-link text-6xl mb-4"></i><p>Introduïu un enllaç vàlid per poder fer la previsualització.</p></div>`;
+                } else if (type === 'image') {
+                    container.innerHTML = `<img src="${safeUrl}" class="w-full h-full object-contain p-4">`;
                 } else if (type === 'video') {
                     container.innerHTML = `<video src="${safeUrl}" controls autoplay class="w-full h-full object-contain bg-black outline-none border-0"></video>`;
                 } else if (type === 'audio') {
@@ -845,60 +797,71 @@
         function buildHtmlCode(mindFileString) {
             if (elementsArray.length === 0) return "<!-- Afegiu elements per començar -->";
 
-            const trackingType = document.getElementById('globalTracking').value;
             let assetsHtml = '<a-assets timeout="10000">\n';
             let markersHtml = '';
-            let requiresGeo = false;
             let requiresMediaPlay = false;
-
+            let requiresGeo = false; // Declaració afegida per solucionar l'error
             let validMindTargetIndex = 0;
 
             elementsArray.forEach((id) => {
-                const mType = document.getElementById(`markerType-${id}`)?.value || 'hiro';
-                const mUrlRaw = document.getElementById(`markerUrl-${id}`)?.value;
                 const cType = document.getElementById(`contentType-${id}`)?.value;
-                const cScale = document.getElementById(`contentScale-${id}`)?.value;
+                const cScale = document.getElementById(`contentScale-${id}`)?.value || '1.0';
                 const isGeo = document.getElementById(`geoToggle-${id}`)?.checked || false;
-                
-                if (isGeo) requiresGeo = true;
+                const interactionUrl = document.getElementById(`interactionUrl-${id}`)?.value || '';
+
+                if (isGeo) requiresGeo = true; // Actualització de la variable
 
                 let currentTargetIndex = validMindTargetIndex;
-                if (trackingType === 'mindar') {
-                    if (window.cachedImages[`trigger_${id}`]) {
-                        validMindTargetIndex++; 
-                    } else {
-                        return; // Omitim l'element si no hi ha imatge activadora a MindAR
-                    }
+                if (window.cachedImages[`trigger_${id}`]) {
+                    validMindTargetIndex++; 
+                } else {
+                    return; 
                 }
 
                 let entityHtml = '';
                 const mediaId = `ar-media-${id}`;
-                const contentRotation = (trackingType === 'mindar') ? '0 0 0' : '-90 0 0';
-                const contentPosition = (trackingType === 'mindar') ? '0 0 0' : '0 0.5 0';
-                const geoClass = isGeo ? `class="geo-content" visible="false"` : '';
+                const contentRotation = '0 0 0';
+                const contentPosition = '0 0 0';
+                
+                let extraClasses = [];
+                let extraAttrs = [];
+                
+                if (isGeo) {
+                    extraClasses.push('geo-content');
+                    extraAttrs.push('visible="false"');
+                }
+                
+                if (interactionUrl) {
+                    extraClasses.push('clickable');
+                    extraAttrs.push(`clickable-link="url: ${interactionUrl}"`);
+                }
+
+                const classStr = extraClasses.length > 0 ? `class="${extraClasses.join(' ')}"` : '';
+                const attrStr = extraAttrs.join(' ');
 
                 if (cType === 'text') {
                     const cText = document.getElementById(`textContent-${id}`).value.replace(/"/g, '&quot;');
                     const cColor = document.getElementById(`textColor-${id}`).value;
                     const cBgColor = document.getElementById(`textBgColor-${id}`).value;
-                    entityHtml = `            <a-entity dynamic-text="text: ${cText}; textColor: ${cColor}; bgColor: ${cBgColor}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" ${geoClass}></a-entity>\n`;
-                } else if (cType === 'image') {
-                    const imgBase64 = window.cachedImages[`content_${id}`] || '';
-                    entityHtml = `            <a-image src="${imgBase64}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" material="side: double; shader: flat" auto-ratio ${geoClass}></a-image>\n`;
+                    const isTransparent = document.getElementById(`bgTransparent-${id}`)?.checked || false;
+                    
+                    entityHtml = `            <a-entity dynamic-text="text: ${cText}; textColor: ${cColor}; bgColor: ${cBgColor}; bgTransparent: ${isTransparent}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" ${classStr} ${attrStr}></a-entity>\n`;
                 } else {
                     const rawUrl = document.getElementById(`contentUrl-${id}`)?.value;
                     const cUrlSafe = parseGoogleDriveUrl(rawUrl, cType);
                     
-                    if (cType === 'video') {
+                    if (cType === 'image') {
+                        entityHtml = `            <a-image src="${cUrlSafe || ''}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" material="side: double; shader: flat" crossorigin="anonymous" auto-ratio ${classStr} ${attrStr}></a-image>\n`;
+                    } else if (cType === 'video') {
                         assetsHtml += `            <video id="${mediaId}" src="${cUrlSafe}" crossorigin="anonymous" playsinline webkit-playsinline loop muted></video>\n`;
                         requiresMediaPlay = true;
-                        entityHtml = `            <a-video src="#${mediaId}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" material="side: double" auto-ratio media-handler="target: #${mediaId}" ${geoClass}></a-video>\n`;
+                        entityHtml = `            <a-video src="#${mediaId}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" material="side: double" auto-ratio media-handler="target: #${mediaId}" ${classStr} ${attrStr}></a-video>\n`;
                     } else if (cType === 'audio') {
                         assetsHtml += `            <audio id="${mediaId}" src="${cUrlSafe}" preload="auto" loop></audio>\n`;
                         requiresMediaPlay = true;
-                        entityHtml = `            <a-entity dynamic-text="text: 🔊; textColor: #ffffff; bgColor: #4f46e5" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale * 0.5} ${cScale * 0.5} ${cScale * 0.5}" media-handler="target: #${mediaId}" ${geoClass}></a-entity>\n`;
+                        entityHtml = `            <a-entity dynamic-text="text: 🔊; textColor: #ffffff; bgColor: #4f46e5; bgTransparent: false" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale * 0.5} ${cScale * 0.5} ${cScale * 0.5}" media-handler="target: #${mediaId}" ${classStr} ${attrStr}></a-entity>\n`;
                     } else if (cType === 'model3d') {
-                        entityHtml = `            <a-gltf-model src="${cUrlSafe}" position="0 0 0" scale="${cScale} ${cScale} ${cScale}" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000" crossorigin="anonymous" ${geoClass}></a-gltf-model>\n`;
+                        entityHtml = `            <a-gltf-model src="${cUrlSafe}" position="0 0 0" scale="${cScale} ${cScale} ${cScale}" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000" crossorigin="anonymous" ${classStr} ${attrStr}></a-gltf-model>\n`;
                     }
                 }
 
@@ -907,16 +870,8 @@
                 const radGeo = document.getElementById(`geoRadius-${id}`)?.value || 50;
                 const geoValidationAttr = isGeo ? `geo-validator="targetLat: ${latGeo}; targetLng: ${lngGeo}; radius: ${radGeo}"` : '';
                 
-                let markerOpen = '', markerClose = '';
-
-                if (trackingType === 'mindar') {
-                    markerOpen = `        <a-entity mindar-image-target="targetIndex: ${currentTargetIndex}" id="trigger-${id}" marker-handler ${geoValidationAttr}>\n`;
-                    markerClose = `        </a-entity>\n\n`;
-                } else {
-                    let attrs = (mType === 'hiro') ? 'preset="hiro"' : `type="pattern" url="${parseGoogleDriveUrl(mUrlRaw, 'patt')}"`;
-                    markerOpen = `        <a-marker ${attrs} id="trigger-${id}" marker-handler ${geoValidationAttr}>\n`;
-                    markerClose = `        </a-marker>\n\n`;
-                }
+                let markerOpen = `        <a-entity mindar-image-target="targetIndex: ${currentTargetIndex}" id="trigger-${id}" marker-handler ${geoValidationAttr}>\n`;
+                let markerClose = `        </a-entity>\n\n`;
 
                 markersHtml += markerOpen + entityHtml + markerClose;
             });
@@ -924,28 +879,49 @@
             assetsHtml += '        </a-assets>\n';
             if (!requiresMediaPlay) assetsHtml = '';
 
-            let sceneOpen = '', sceneClose = '</a-scene>';
-            
-            // Nova implementació: l'arxiu s'injecta a través de la API una vegada el DOM ha carregat
-            if (trackingType === 'mindar') {
-                sceneOpen = `    <a-scene id="ar-scene" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">\n`;
-                sceneClose = `        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>\n    </a-scene>`;
-            } else {
-                sceneOpen = `    <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;" renderer="colorManagement: true;">\n`;
-                sceneClose = `        <a-entity camera></a-entity>\n    </a-scene>`;
+            const b64DataOnly = mindFileString.split(',')[1] || '';
+            const safeAssets = assetsHtml.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, " ");
+            const safeMarkers = markersHtml.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, " ");
+
+            let bodyContent = `
+    <script>
+        function b64toBlob(b64Data, contentType='', sliceSize=512) {
+            const byteCharacters = atob(b64Data);
+            const byteArrays = [];
+            for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                const slice = byteCharacters.slice(offset, offset + sliceSize);
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                byteArrays.push(byteArray);
             }
+            return new Blob(byteArrays, {type: contentType});
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const b64Data = "${b64DataOnly}";
+            const blob = b64toBlob(b64Data, 'application/octet-stream');
+            const blobUrl = URL.createObjectURL(blob);
+
+            const sceneEl = document.createElement('a-scene');
+            sceneEl.setAttribute('mindar-image', 'imageTargetSrc: ' + blobUrl + '; autoStart: true;');
+            sceneEl.setAttribute('color-space', 'sRGB');
+            sceneEl.setAttribute('renderer', 'colorManagement: true, physicallyCorrectLights');
+            sceneEl.setAttribute('vr-mode-ui', 'enabled: false');
+            sceneEl.setAttribute('device-orientation-permission-ui', 'enabled: false');
+
+            sceneEl.innerHTML = '<a-camera position="0 0 0" look-controls="enabled: false"><a-entity cursor="rayOrigin: mouse;" raycaster="objects: .clickable"></a-entity></a-camera>' + 
+                                '${safeAssets}' + 
+                                '${safeMarkers}';
+                                
+            document.body.appendChild(sceneEl);
+        });
+    <\/script>`;
 
             const startScript = `<script>
         document.addEventListener("DOMContentLoaded", function() {
-            ${trackingType === 'mindar' ? `
-            // Injecció segura de les dades del marcador MindAR post-càrrega per evitar col·lapsar el document
-            const sceneEl = document.querySelector('a-scene');
-            sceneEl.setAttribute('mindar-image', {
-                imageTargetSrc: '${mindFileString}',
-                autoStart: true
-            });
-            ` : ''}
-
             const startBtn = document.getElementById('start-btn');
             if (startBtn) {
                 startBtn.addEventListener('click', function() {
@@ -974,6 +950,17 @@
             }
         });
 
+        AFRAME.registerComponent('clickable-link', {
+            schema: { url: {type: 'string'} },
+            init: function () {
+                this.el.addEventListener('click', () => {
+                    if (this.data.url) {
+                        window.open(this.data.url, '_blank');
+                    }
+                });
+            }
+        });
+
         AFRAME.registerComponent('auto-ratio', {
             init: function () {
                 const el = this.el; let ratioApplied = false;
@@ -997,10 +984,24 @@
         });
 
         AFRAME.registerComponent('dynamic-text', {
-            schema: { text: {type: 'string', default: ''}, textColor: {type: 'string', default: '#ffffff'}, bgColor: {type: 'string', default: '#000000'} },
+            schema: { 
+                text: {type: 'string', default: ''}, 
+                textColor: {type: 'string', default: '#ffffff'}, 
+                bgColor: {type: 'string', default: '#000000'},
+                bgTransparent: {type: 'boolean', default: false}
+            },
             init: function () {
                 const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024; const ctx = canvas.getContext('2d');
-                ctx.fillStyle = this.data.bgColor; ctx.globalAlpha = 0.85; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1.0;
+                
+                if (!this.data.bgTransparent) {
+                    ctx.fillStyle = this.data.bgColor; 
+                    ctx.globalAlpha = 0.85; 
+                    ctx.fillRect(0, 0, canvas.width, canvas.height); 
+                    ctx.globalAlpha = 1.0;
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                
                 ctx.fillStyle = this.data.textColor; const isIcon = this.data.text.trim() === '🔊';
                 ctx.font = isIcon ? 'bold 400px sans-serif' : 'bold 56px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 if (isIcon) { ctx.fillText(this.data.text, canvas.width / 2, canvas.height / 2); } else {
@@ -1017,7 +1018,8 @@
                 }
                 const texture = new THREE.CanvasTexture(canvas);
                 const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
-                this.el.setObject3D('mesh', new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material));
+                // Text escalat nativament a 1x1 respecte a l'activador
+                this.el.setObject3D('mesh', new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material));
             }
         });
     <\/script>`;
@@ -1077,7 +1079,7 @@
     <meta charset="utf-8">
     <title>Experiència AR Multimarcador</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"><\/script>
-    ${trackingType === 'mindar' ? '<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"><\/script>' : '<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"><\/script>'}
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"><\/script>
     ${startScript}
     ${baseScript}
     ${mediaScript}
@@ -1093,17 +1095,13 @@
         <button id="start-btn" style="padding: 15px 30px; font-size: 18px; font-weight: bold; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer;">Permetre l'Accés i Començar</button>
     </div>
     <div class="ui-layer"><h2>Apunteu la càmera cap als referents</h2></div>
-${sceneOpen}
-${assetsHtml}
-${markersHtml}
-${sceneClose}
+${bodyContent}
 </body>
 </html>`;
         }
 
-        // === EXECUCIÓ, COMPILACIÓ ASÍNCRONA I ACCIONS ===
+        // === EXECUCIÓ I COMPILACIÓ DE LA UI ===
         async function executeAction(actionType) {
-            const trackingType = document.getElementById('globalTracking').value;
             let finalHtml = '';
 
             if (elementsArray.length === 0) {
@@ -1111,61 +1109,55 @@ ${sceneClose}
                 return;
             }
 
-            if (trackingType === 'mindar') {
-                const imagesList = [];
-                for (let id of elementsArray) {
-                    const b64 = window.cachedImages[`trigger_${id}`];
-                    if (b64) {
-                        try {
-                            const imgNode = await loadImageObj(b64);
-                            imagesList.push(imgNode);
-                        } catch(e) {
-                            console.error("Error carregant la imatge de l'element " + id, e);
-                        }
+            const imagesList = [];
+            for (let id of elementsArray) {
+                const b64 = window.cachedImages[`trigger_${id}`];
+                if (b64) {
+                    try {
+                        const imgNode = await loadImageObj(b64);
+                        imagesList.push(imgNode);
+                    } catch(e) {
+                        console.error("Error carregant la imatge de l'element " + id, e);
                     }
                 }
+            }
 
-                if (imagesList.length === 0) {
-                    alert("Cal pujar almenys una imatge activadora de referència per poder compilar l'experiència en mode MindAR.");
-                    return;
-                }
+            if (imagesList.length === 0) {
+                alert("Cal pujar almenys una imatge activadora de referència per poder compilar l'experiència en mode MindAR.");
+                return;
+            }
 
-                document.getElementById('loadingOverlay').classList.remove('hidden');
-                document.getElementById('compilerProgressBar').style.width = '0%';
-                document.getElementById('compilerProgressText').innerText = '0%';
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('compilerProgressBar').style.width = '0%';
+            document.getElementById('compilerProgressText').innerText = '0%';
 
-                try {
-                    if (!window.MindARCompiler) {
-                        alert("L'eina de compilació s'està inicialitzant. Torneu-ho a provar en uns segons.");
-                        document.getElementById('loadingOverlay').classList.add('hidden');
-                        return;
-                    }
-                    
-                    const compiler = new window.MindARCompiler();
-                    await compiler.compileImageTargets(imagesList, (progress) => {
-                        const pct = Math.round(progress);
-                        document.getElementById('compilerProgressBar').style.width = `${pct}%`;
-                        document.getElementById('compilerProgressText').innerText = `${pct}%`;
-                    });
-
-                    const exportedBuffer = await compiler.exportData();
-                    const base64MindData = "data:application/octet-stream;base64," + bufferToBase64(exportedBuffer);
-                    
-                    finalHtml = buildHtmlCode(base64MindData);
-                } catch (error) {
-                    console.error("Error de compilació", error);
-                    alert("S'ha produït un problema en analitzar i generar l'arxiu dels referents interns.");
+            try {
+                if (!window.MindARCompiler) {
+                    alert("L'eina de compilació s'està inicialitzant. Torneu-ho a provar en uns segons.");
                     document.getElementById('loadingOverlay').classList.add('hidden');
                     return;
                 }
+                
+                const compiler = new window.MindARCompiler();
+                await compiler.compileImageTargets(imagesList, (progress) => {
+                    const pct = Math.round(progress);
+                    document.getElementById('compilerProgressBar').style.width = `${pct}%`;
+                    document.getElementById('compilerProgressText').innerText = `${pct}%`;
+                });
+
+                const exportedBuffer = await compiler.exportData();
+                const base64MindData = "data:application/octet-stream;base64," + bufferToBase64(exportedBuffer);
+                
+                finalHtml = buildHtmlCode(base64MindData);
+            } catch (error) {
+                console.error("Error de compilació", error);
+                alert("S'ha produït un problema en analitzar i generar l'arxiu dels referents interns.");
                 document.getElementById('loadingOverlay').classList.add('hidden');
-            } else {
-                finalHtml = buildHtmlCode("");
+                return;
             }
+            document.getElementById('loadingOverlay').classList.add('hidden');
 
             if (actionType === 'preview') {
-                // S'obre una finestra en blanc i s'hi injecta el codi directament.
-                // Aquest mètode és totalment compatible amb les restriccions d'accés a la càmera.
                 const win = window.open('', '_blank');
                 if (win) {
                     win.document.open();
@@ -1175,12 +1167,12 @@ ${sceneClose}
                     alert("El navegador ha bloquejat l'obertura de la finestra emergent. Si us plau, permeteu les finestres emergents per a aquest lloc per provar l'experiència.");
                 }
             } else if (actionType === 'copy') {
-                // Tècnica alternativa i compatible amb iframes per copiar dades al porta-retalls sense bloquejos.
                 const textArea = document.createElement("textarea");
                 textArea.value = finalHtml;
                 textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                textArea.style.top = "-999999px";
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.opacity = "0";
                 document.body.appendChild(textArea);
                 textArea.focus();
                 textArea.select();
@@ -1205,8 +1197,7 @@ ${sceneClose}
 
         // Inicialització en carregar l'aplicació
         window.onload = () => {
-            initMap();
-            addElement();
+            addElement(); // No cal iniciar el mapa encara si no està visible
         };
     </script>
 </body>
