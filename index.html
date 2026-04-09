@@ -185,6 +185,12 @@
         </button>
     </div>
 
+    <!-- Notificació Flotant de Còpia -->
+    <div id="copyNotification" class="fixed bottom-24 right-6 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 z-50 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-green-400 text-xl"></i> 
+        <span class="font-medium">Codi copiat correctament al porta-retalls!</span>
+    </div>
+
     <!-- Modal per a les Previsualitzacions (1:1 Aspect Ratio) -->
     <div id="previewModal" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-[150] hidden flex flex-col justify-center items-center p-6">
         <button onclick="closePreview()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-4xl transition-colors">
@@ -1004,7 +1010,9 @@
                 this.el.addEventListener('touchstart', this.onDragStart);
             },
             onDragStart: function (e) {
+                if (this.isDragging) return;
                 this.isDragging = true;
+                
                 const evt = (e.detail && e.detail.mouseEvent) ? e.detail.mouseEvent : e;
                 let clientX = 0, clientY = 0;
                 
@@ -1014,10 +1022,25 @@
                 } else if (evt.clientX !== undefined) {
                     clientX = evt.clientX;
                     clientY = evt.clientY;
+                } else if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else if (e.clientX !== undefined) {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
                 }
                 
                 this.previousPosition = { x: clientX, y: clientY };
-                this.el.removeAttribute('animation');
+                
+                // Evitem el salt en aturar l'animació fixant la rotació actual
+                if (this.el.hasAttribute('animation')) {
+                    const currentRot = this.el.object3D.rotation;
+                    const rotX = THREE.MathUtils.radToDeg(currentRot.x);
+                    const rotY = THREE.MathUtils.radToDeg(currentRot.y);
+                    const rotZ = THREE.MathUtils.radToDeg(currentRot.z);
+                    this.el.removeAttribute('animation');
+                    this.el.setAttribute('rotation', rotX + ' ' + rotY + ' ' + rotZ);
+                }
 
                 window.addEventListener('mousemove', this.onDragMove);
                 window.addEventListener('touchmove', this.onDragMove, {passive: false});
@@ -1340,7 +1363,7 @@ ${bodyContent}
 
         // Inicialització en carregar l'aplicació
         window.onload = () => {
-            addElement(); // No cal iniciar el mapa encara si no està visible
+            addElement(); 
         };
     </script>
 </body>
