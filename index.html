@@ -22,21 +22,21 @@
             systems: {}
         };
 
-        // Supressió d'errors a la consola si model-viewer intenta carregar un format incorrecte (ex: PNG dins d'un camp 3D) o rep un 404
+        // Supressió d'errors a la consola si model-viewer intenta carregar un format incorrecte o rep un 404
         const originalConsoleError = console.error;
         console.error = function(...args) {
             const msg = args.join(' ');
-            if (msg.includes('is not valid JSON') || msg.includes('Unexpected token') || msg.includes('responded with 404') || msg.includes('fetch for')) {
+            if (msg.includes('is not valid JSON') || msg.includes('Unexpected token') || msg.includes('responded with 404') || msg.includes('fetch for') || msg.includes('Invalid typed array length')) {
                 return; 
             }
             originalConsoleError.apply(console, args);
         };
 
-        // Prevenció d'unhandled rejections associades a aquest mateix error de parsing i 404s
+        // Prevenció d'unhandled rejections associades a aquests errors de parsing i xarxa
         window.addEventListener('unhandledrejection', function(event) {
             if (event.reason) {
                 const reasonStr = event.reason.toString();
-                if (reasonStr.includes('JSON') || reasonStr.includes('Unexpected token') || reasonStr.includes('PNG') || reasonStr.includes('404') || reasonStr.includes('fetch') || event.reason instanceof SyntaxError) {
+                if (reasonStr.includes('JSON') || reasonStr.includes('Unexpected token') || reasonStr.includes('PNG') || reasonStr.includes('404') || reasonStr.includes('fetch') || reasonStr.includes('Invalid typed array length') || event.reason instanceof SyntaxError || event.reason instanceof RangeError) {
                     event.preventDefault(); 
                 }
             }
@@ -110,26 +110,6 @@
             <div class="mb-2 text-center mt-4">
                 <h2 class="text-3xl font-bold text-gray-800">Configuració del projecte</h2>
                 <p class="text-gray-500 text-base mt-2">Creeu experiències amb múltiples elements actius simultàniament.</p>
-            </div>
-
-            <!-- PARÀMETRES GLOBALS -->
-            <div class="glass-panel p-6 rounded-xl border-t-4 border-indigo-600">
-                <h3 class="font-semibold text-lg mb-4 flex items-center gap-2 text-indigo-800">
-                    <i class="fa-solid fa-gear"></i> Base Tecnològica
-                </h3>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Quin tipus de seguiment fareu servir?</label>
-                    <select id="globalTracking" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 outline-none" onchange="toggleGlobalSettings()">
-                        <option value="mindar">Imatges Naturals / Fotografies (MindAR)</option>
-                        <option value="arjs">Marcadors Clàssics d'alt contrast (AR.js)</option>
-                    </select>
-                </div>
-
-                <!-- Explicació MindAR Automàtic -->
-                <div id="mindarGlobalSettings" class="mt-4 bg-purple-50 p-5 rounded-lg border border-purple-100">
-                    <h4 class="font-medium text-sm text-purple-800 mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Compilació Automàtica</h4>
-                    <p class="text-sm text-purple-700 leading-relaxed">Amb la tecnologia MindAR, les imatges activadores que pengeu s'analitzaran i es compilaran automàticament en un fitxer <code>.mind</code> integrat en el moment de generar o provar el codi. No cal fer servir eines externes.</p>
-                </div>
             </div>
 
             <!-- CONTENIDOR D'ELEMENTS DINÀMICS -->
@@ -241,14 +221,6 @@
             <!-- 1. El Trigger -->
             <div class="mb-6">
                 <h4 class="text-md font-semibold text-gray-800 mb-3"><span class="bg-indigo-100 text-indigo-700 py-1 px-2 rounded mr-1">1</span> L'Activador (Referent)</h4>
-                
-                <div class="arjs-specific hidden space-y-3 mb-4">
-                    <select id="markerType-{id}" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 outline-none bg-white" onchange="toggleElementSettings({id}); updateThumbnails({id});">
-                        <option value="hiro">Marcador Clàssic: Hiro</option>
-                        <option value="pattern">Marcador Clàssic: Personalitzat (.patt)</option>
-                    </select>
-                    <input type="text" id="markerUrl-{id}" class="hidden w-full text-sm border border-gray-300 rounded-lg p-2.5" placeholder="Enllaç al fitxer .patt">
-                </div>
 
                 <div class="border-t border-gray-100 pt-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pengeu la imatge activadora de referència</label>
@@ -319,7 +291,8 @@
                 <!-- Àrea d'Enllaç per Imatge/Vídeo/Àudio/3D -->
                 <div id="urlContentDiv-{id}" class="hidden space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Introduïu l'enllaç directe a l'arxiu:</label>
-                    <input type="url" id="contentUrl-{id}" placeholder="https://..." class="w-full text-sm border border-gray-300 rounded-lg p-3 outline-none bg-white" onchange="updateThumbnails({id})">
+                    <input type="url" id="contentUrl-{id}" placeholder="https://..." class="w-full text-sm border border-gray-300 rounded-lg p-3 outline-none bg-white" oninput="updateThumbnails({id})">
+                    <p class="text-xs text-gray-500 mt-1">Recomanem utilitzar enllaços directes a fitxers .glb (com per exemple a GitHub) per garantir-ne la compatibilitat.</p>
                 </div>
 
                 <div id="scaleDiv-{id}" class="mt-4 bg-gray-100 p-4 rounded-lg border border-gray-200">
@@ -465,7 +438,7 @@
         // === GESTIÓ DE DESAR I CARREGAR EL PROJECTE ===
         function saveProject() {
             const projectData = {
-                version: "1.6",
+                version: "1.7",
                 globalLat: document.getElementById('globalLat').value,
                 globalLng: document.getElementById('globalLng').value,
                 elementCount: elementCount,
@@ -656,7 +629,7 @@
                         cThumb.innerHTML = `<div class="relative w-full h-full flex items-center justify-center bg-gray-100 rounded-xl"><i class="fa-solid fa-music text-purple-500 text-5xl"></i></div>`;
                         cThumb.title = "Previsualitzar Contingut";
                     } else if (cType === 'model3d' && cUrlSafe) {
-                        cThumb.innerHTML = `<model-viewer src="${cUrlSafe}" class="thumb-model-viewer p-1" auto-rotate disable-zoom disable-pan shadow-intensity="1"></model-viewer>`;
+                        cThumb.innerHTML = `<model-viewer src="${cUrlSafe}" class="thumb-model-viewer p-1" auto-rotate disable-zoom disable-pan shadow-intensity="1" crossorigin="anonymous"></model-viewer>`;
                         cThumb.title = "Previsualitzar Contingut";
                     } else {
                         // Icona per defecte si no hi ha enllaç o el format no coincideix visualment
@@ -709,7 +682,7 @@
                 } else if (type === 'audio') {
                     container.innerHTML = `<div class="w-full h-full bg-gray-800 p-12 flex flex-col justify-center items-center border-0"><i class="fa-solid fa-music text-indigo-400 text-7xl mb-10 animate-pulse"></i><audio src="${safeUrl}" controls autoplay class="w-full max-w-sm outline-none"></audio></div>`;
                 } else if (type === 'model3d') {
-                    container.innerHTML = `<model-viewer src="${safeUrl}" auto-rotate camera-controls shadow-intensity="1" class="w-full h-full bg-gray-800 border-0"></model-viewer>`;
+                    container.innerHTML = `<model-viewer src="${safeUrl}" auto-rotate camera-controls shadow-intensity="1" class="w-full h-full bg-gray-800 border-0" crossorigin="anonymous"></model-viewer>`;
                 }
                 document.getElementById('previewModal').classList.remove('hidden');
             }
@@ -729,7 +702,7 @@
             const lat = 41.3851; const lng = 2.1734;
             geoMap = L.map('geoMap').setView([lat, lng], 14);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+                attribution: '© OpenStreetMap contributors'
             }).addTo(geoMap);
 
             geoMarker = L.marker([lat, lng], {draggable: true}).addTo(geoMap);
@@ -808,7 +781,7 @@
                 const fileId = match[1];
                 if (type === 'image') return `https://lh3.googleusercontent.com/d/${fileId}`;
                 const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-                return `https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`;
+                return `https://corsproxy.io/?${encodeURIComponent(directUrl)}`;
             }
             return url; 
         }
@@ -842,6 +815,7 @@
             let requiresMediaPlay = false;
             let requiresGeo = false; 
             let validMindTargetIndex = 0;
+            let hasAssets = false; // Aquesta és la nova variable de control
 
             elementsArray.forEach((id) => {
                 const cType = document.getElementById(`contentType-${id}`)?.value;
@@ -876,7 +850,6 @@
                     const safeUrl = interactionUrl.replace(/"/g, '&quot;');
                     extraAttrs.push(`clickable-link="url: ${safeUrl}; type: ${cType}"`);
                 } else if (cType === 'model3d') {
-                    // Fins i tot si no hi ha url interactiu, el model ha de rebre events per a la rotació arrossegant
                     extraClasses.push('clickable');
                 }
 
@@ -903,13 +876,17 @@
                     } else if (cType === 'video') {
                         assetsHtml += `            <video id="${mediaId}" src="${cUrlSafe}" crossorigin="anonymous" playsinline webkit-playsinline loop muted></video>\n`;
                         requiresMediaPlay = true;
+                        hasAssets = true; // Indiquem que hi ha un actiu a la llista
                         entityHtml = `            <a-video src="#${mediaId}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" material="side: double" auto-ratio media-handler="target: #${mediaId}" ${classStr} ${attrStr}></a-video>\n`;
                     } else if (cType === 'audio') {
                         assetsHtml += `            <audio id="${mediaId}" src="${cUrlSafe}" preload="auto" loop></audio>\n`;
                         requiresMediaPlay = true;
+                        hasAssets = true; // Indiquem que hi ha un actiu a la llista
                         entityHtml = `            <a-entity dynamic-text="text: 🔊; textColor: #ffffff; bgColor: #4f46e5; bgTransparent: false" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale * 0.5} ${cScale * 0.5} ${cScale * 0.5}" media-handler="target: #${mediaId}" ${classStr} ${attrStr}></a-entity>\n`;
                     } else if (cType === 'model3d') {
-                        entityHtml = `            <a-gltf-model src="${cUrlSafe}" position="${contentPosition}" rotation="${contentRotation}" auto-scale-model="userScale: ${cScale}" crossorigin="anonymous" ${classStr} ${attrStr}></a-gltf-model>\n`;
+                        // Carreguem el model 3D directament des de la URL a l'entitat sense passar per a-asset-item.
+                        // Evitem utilitzar arraybuffer directament ja que corromp la descompressió Draco/Meshopt en el GLTFLoader.
+                        entityHtml = `            <a-entity gltf-model="${cUrlSafe}" position="${contentPosition}" rotation="${contentRotation}" auto-scale-model="userScale: ${cScale}" ${classStr} ${attrStr} model-error-logger></a-entity>\n`;
                     }
                 }
 
@@ -925,7 +902,7 @@
             });
 
             assetsHtml += '        </a-assets>\n';
-            if (!requiresMediaPlay) assetsHtml = '';
+            if (!hasAssets) assetsHtml = ''; // Canvi principal aplicat: esborrar si no hi ha actius, no només mèdia
 
             const b64DataOnly = mindFileString.split(',')[1] || '';
             const safeAssets = assetsHtml.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, " ");
@@ -959,6 +936,7 @@
             sceneEl.setAttribute('renderer', 'colorManagement: true, physicallyCorrectLights');
             sceneEl.setAttribute('vr-mode-ui', 'enabled: false');
             sceneEl.setAttribute('device-orientation-permission-ui', 'enabled: false');
+            sceneEl.setAttribute('gltf-model', 'dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.6/; meshoptDecoderPath: https://unpkg.com/meshoptimizer@0.19.0/meshopt_decoder.js; basisTranscoderPath: https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/basis/');
 
             sceneEl.innerHTML = '<a-camera position="0 0 0" look-controls="enabled: false"><a-entity cursor="rayOrigin: mouse; fuse: false;" raycaster="objects: .clickable; near: 0; far: 10000;"></a-entity></a-camera>' + 
                                 '${safeAssets}' + 
@@ -998,6 +976,21 @@
             }
         });
 
+        // Component gestor d'errors afegit per notificar si hi ha un problema amb Draco
+        AFRAME.registerComponent('model-error-logger', {
+            init: function () {
+                this.el.addEventListener('model-error', (e) => {
+                    const errDetail = e.detail && e.detail.message ? e.detail.message : (e.detail && e.detail.src ? e.detail.src : 'Error de compressió / incompatibilitat');
+                    console.error('Error crític carregant el model 3D:', e.detail.src, e.detail.message || e);
+                    const uiLayer = document.querySelector('.ui-layer');
+                    if (uiLayer) {
+                        uiLayer.innerHTML = '<div style="background:rgba(220,38,38,0.9); padding:15px; border-radius:8px; margin-top:20px; font-family:sans-serif; text-shadow:none;"><strong>No s\\'ha pogut carregar el model 3D.</strong><br><span style="font-size:12px; opacity:0.9;">' + errDetail + '</span></div>';
+                        uiLayer.style.display = 'block';
+                    }
+                });
+            }
+        });
+
         AFRAME.registerComponent('drag-rotate', {
             init: function () {
                 this.isDragging = false;
@@ -1013,18 +1006,14 @@
                 if (this.isDragging) return;
                 this.isDragging = true;
                 
-                // Reiniciem la posició prèvia perquè es fixi just en el primer moviment
                 this.previousPosition = { x: null, y: null };
                 
-                // Evitem el salt en aturar l'animació fixant la rotació actual exacta
                 if (this.el.hasAttribute('animation')) {
-                    const currentRot = this.el.object3D.rotation.clone(); // Fem una còpia segura dels angles
+                    const currentRot = this.el.object3D.rotation.clone();
                     this.el.removeAttribute('animation');
                     
-                    // Forcem que l'objecte mantingui la rotació clonada immediatament
                     this.el.object3D.rotation.copy(currentRot);
                     
-                    // Sincronitzem amb l'atribut d'A-Frame per estabilitzar
                     this.el.setAttribute('rotation', {
                         x: THREE.MathUtils.radToDeg(currentRot.x),
                         y: THREE.MathUtils.radToDeg(currentRot.y),
@@ -1049,7 +1038,6 @@
                     currentY = e.clientY;
                 }
                 
-                // En el primer moviment, fixem el punt de referència on es troba el dit/ratolí
                 if (this.previousPosition.x === null) {
                     this.previousPosition.x = currentX;
                     this.previousPosition.y = currentY;
@@ -1138,29 +1126,60 @@
         AFRAME.registerComponent('auto-scale-model', {
             schema: { userScale: {type: 'number', default: 1.0} },
             init: function () {
-                this.el.addEventListener('model-loaded', () => {
-                    const obj = this.el.getObject3D('mesh');
-                    if (obj) {
-                        const clone = obj.clone();
-                        clone.position.set(0,0,0);
-                        clone.rotation.set(0,0,0);
-                        clone.scale.set(1,1,1);
-                        clone.updateMatrixWorld(true);
-                        
-                        const box = new THREE.Box3().setFromObject(clone);
-                        const size = new THREE.Vector3();
-                        box.getSize(size);
-                        const center = new THREE.Vector3();
-                        box.getCenter(center);
-
-                        const maxDim = Math.max(size.x, size.y, size.z);
-                        if (maxDim > 0) {
-                            const scaleFactor = this.data.userScale / maxDim;
-                            this.el.setAttribute('scale', scaleFactor + ' ' + scaleFactor + ' ' + scaleFactor);
-                        }
-
-                        obj.position.sub(center);
+                let scaleApplied = false;
+                let retries = 0;
+                const applyScale = () => {
+                    if (scaleApplied || retries > 20) return;
+                    const model = this.el.getObject3D('mesh');
+                    if (!model) {
+                        retries++;
+                        setTimeout(applyScale, 200);
+                        return;
                     }
+
+                    // Clonem el model temporalment per aïllar-lo i calcular la seva mida real
+                    // Així evitem desvincular-lo d'A-Frame, la qual cosa feia desaparèixer models de fotogrametria.
+                    const clone = model.clone();
+                    clone.position.set(0,0,0);
+                    clone.rotation.set(0,0,0);
+                    clone.scale.set(1,1,1);
+                    clone.updateMatrixWorld(true);
+
+                    // Forcem el càlcul de les caixes de geometria, necessari per a models optimitzats/comprimits
+                    clone.traverse(node => {
+                        if (node.isMesh && node.geometry) {
+                            node.geometry.computeBoundingBox();
+                        }
+                    });
+
+                    const box = new THREE.Box3().setFromObject(clone);
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+                    const center = new THREE.Vector3();
+                    box.getCenter(center);
+
+                    if (size.length() === 0) {
+                        retries++;
+                        setTimeout(applyScale, 200);
+                        return;
+                    }
+
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    if (maxDim > 0 && maxDim !== Infinity && !isNaN(maxDim)) {
+                        const targetScale = this.data.userScale / maxDim;
+                        this.el.setAttribute('scale', targetScale + ' ' + targetScale + ' ' + targetScale);
+                        
+                        // Centrem la geometria i la situem just davant del marcador a l'eix Z
+                        model.position.x = -center.x;
+                        model.position.y = -center.y;
+                        model.position.z = -center.z + (size.z / 2) + 0.05; // Una mica endavant del pla
+                        
+                        scaleApplied = true;
+                    }
+                };
+
+                this.el.addEventListener('model-loaded', () => {
+                    setTimeout(applyScale, 100);
                 });
             }
         });
@@ -1259,7 +1278,7 @@
 <head>
     <meta charset="utf-8">
     <title>Experiència AR Multimarcador</title>
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"><\/script>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"><\/script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"><\/script>
     ${startScript}
     ${baseScript}
