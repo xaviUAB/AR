@@ -872,7 +872,7 @@
                     const cUrlSafe = parseGoogleDriveUrl(rawUrl, cType);
                     
                     if (cType === 'image') {
-                        entityHtml = `            <a-image src="${cUrlSafe || ''}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" material="side: double; shader: flat" crossorigin="anonymous" auto-ratio ${classStr} ${attrStr}></a-image>\n`;
+                        entityHtml = `            <a-entity geometry="primitive: plane; width: 1; height: 1" robust-image="src: ${cUrlSafe || ''}" position="${contentPosition}" rotation="${contentRotation}" scale="${cScale} ${cScale} ${cScale}" material="side: double; shader: flat; transparent: true" ${classStr} ${attrStr}></a-entity>\n`;
                     } else if (cType === 'video') {
                         assetsHtml += `            <video id="${mediaId}" src="${cUrlSafe}" crossorigin="anonymous" playsinline webkit-playsinline loop muted></video>\n`;
                         requiresMediaPlay = true;
@@ -1104,7 +1104,18 @@
         AFRAME.registerComponent('auto-ratio', {
             init: function () {
                 const el = this.el; let ratioApplied = false;
-                const applyRatio = (w, h) => { if (w && h && !ratioApplied) { const ratio = w / h; el.setAttribute('width', ratio); el.setAttribute('height', 1); ratioApplied = true; } };
+                const applyRatio = (w, h) => { 
+                    if (w && h && !ratioApplied) { 
+                        if (w > h) {
+                            el.setAttribute('width', w / h);
+                            el.setAttribute('height', 1);
+                        } else {
+                            el.setAttribute('width', 1);
+                            el.setAttribute('height', h / w);
+                        }
+                        ratioApplied = true; 
+                    } 
+                };
                 el.addEventListener('materialtextureloaded', () => {
                     const material = el.components.material && el.components.material.material;
                     if (material && material.map && material.map.image && !material.map.image.videoWidth) applyRatio(material.map.image.width, material.map.image.height);
@@ -1220,6 +1231,85 @@
                 const texture = new THREE.CanvasTexture(canvas);
                 const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
                 this.el.setObject3D('mesh', new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material));
+            }
+        });
+
+        AFRAME.registerComponent('robust-image', {
+            schema: { src: {type: 'string'} },
+            init: function () {
+                if (!this.data.src) return;
+                const originalUrl = this.data.src;
+                
+                // Mètodes consecutius de descàrrega per vèncer els bloquejos
+                const urlsToTry = [
+                    originalUrl,
+                    \`https://corsproxy.io/?\${encodeURIComponent(originalUrl)}\`,
+                    \`https://images.weserv.nl/?url=\${encodeURIComponent(originalUrl)}\`,
+                    \`https://api.codetabs.com/v1/proxy?quest=\${encodeURIComponent(originalUrl)}\`
+                ];
+                
+                let attempt = 0;
+                
+                const tryNext = () => {
+                    if (attempt >= urlsToTry.length) {
+                        // Si tots els mètodes directes fallen, s'aplica el mètode intern Base64
+                        this.tryFetchBase64(originalUrl);
+                        return;
+                    }
+                    const url = urlsToTry[attempt];
+                    attempt++;
+                    
+                    const loader = new THREE.TextureLoader();
+                    loader.setCrossOrigin('anonymous');
+                    loader.load(
+                        url,
+                        (texture) => this.applyTexture(texture),
+                        undefined,
+                        () => tryNext()
+                    );
+                };
+                
+                tryNext();
+            },
+            tryFetchBase64: async function(url) {
+                try {
+                    const proxyUrl = \`https://corsproxy.io/?\${encodeURIComponent(url)}\`;
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) throw new Error('Fetch fallit');
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const texture = new THREE.Texture(img);
+                            texture.needsUpdate = true;
+                            this.applyTexture(texture);
+                        };
+                        img.src = reader.result;
+                    };
+                    reader.readAsDataURL(blob);
+                } catch (e) {
+                    console.error("Tots els mètodes per carregar la imatge han fallat:", url);
+                }
+            },
+            applyTexture: function(texture) {
+                const mesh = this.el.getObject3D('mesh');
+                if (mesh && mesh.material) {
+                    mesh.material.map = texture;
+                    mesh.material.needsUpdate = true;
+                }
+                // Si disposem de la imatge, ajustem automàticament les dimensions de la geometria del pla
+                if (texture.image && texture.image.width && texture.image.height) {
+                    const w = texture.image.width;
+                    const h = texture.image.height;
+                    if (w > h) {
+                        this.el.setAttribute('geometry', 'width', w / h);
+                        this.el.setAttribute('geometry', 'height', 1);
+                    } else {
+                        this.el.setAttribute('geometry', 'width', 1);
+                        this.el.setAttribute('geometry', 'height', h / w);
+                    }
+                }
             }
         });
     <\/script>`;
